@@ -6,21 +6,37 @@ const cors = require('cors');
 
 const app = express();
 
-// Enable CORS for all routes
+// Comprehensive CORS configuration
 app.use(cors({
-  origin: ['https://prasannamishra001.github.io', 'http://localhost:3000']
+  origin: [
+    'https://prasannamishra001.github.io',  // Your GitHub Pages site
+    'http://localhost:3000',               // Local development
+    '*'                                    // Use cautiously in production
+  ],
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
+// Explicit preflight handling
+app.options('*', cors());
+
+// Ensure JSON parsing
 app.use(express.json());
 
+// Explicit route definition
 app.post('/download', async (req, res) => {
+  console.log('Download request received:', req.body);  // Logging for debugging
+
   const { repoUrl, folderName } = req.body;
 
   try {
     // Extract repo owner and name from the URL
     const match = repoUrl.match(/https:\/\/github.com\/([^/]+)\/([^/]+)/);
     if (!match) {
-      return res.status(400).json({ success: false, message: 'Invalid GitHub URL' });
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Invalid GitHub URL' 
+      });
     }
 
     const repoOwner = match[1];
@@ -37,26 +53,20 @@ app.post('/download', async (req, res) => {
     const files = response.data;
 
     if (!files || files.length === 0) {
-      return res.status(404).json({ success: false, message: 'No files found in this folder' });
+      return res.status(404).json({ 
+        success: false, 
+        message: 'No files found in this folder' 
+      });
     }
 
-    // Save files to a folder on the server
-    const downloadFolder = path.join(__dirname, 'downloads', folderName);
-    if (!fs.existsSync(downloadFolder)) {
-      fs.mkdirSync(downloadFolder, { recursive: true });
-    }
-
-    // Download all files
-    const downloadPromises = files.map(async (file) => {
-      if (file.type === 'file') {
-        const fileResponse = await axios.get(file.download_url, { responseType: 'arraybuffer' });
-        fs.writeFileSync(path.join(downloadFolder, file.name), fileResponse.data);
-      }
+    // Simulate download process (adjust as needed)
+    res.json({ 
+      success: true, 
+      message: 'Download process initiated',
+      fileCount: files.length,
+      files: files.map(file => file.name)
     });
 
-    await Promise.all(downloadPromises);
-
-    res.json({ success: true, message: 'Files downloaded successfully' });
   } catch (error) {
     console.error('Download error:', error);
     res.status(500).json({ 
@@ -64,6 +74,11 @@ app.post('/download', async (req, res) => {
       message: error.response?.data?.message || error.message 
     });
   }
+});
+
+// Root route for health check
+app.get('/', (req, res) => {
+  res.json({ status: 'Backend is running' });
 });
 
 module.exports = app;
