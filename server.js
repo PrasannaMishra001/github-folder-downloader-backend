@@ -50,6 +50,7 @@ app.post('/download', async (req, res) => {
     }
 });
 
+// Vercel automatically handles the port, no need to manually define it.
 app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}`);
 });
