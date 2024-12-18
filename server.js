@@ -5,15 +5,20 @@ const cors = require('cors');
 const app = express();
 
 // Comprehensive CORS configuration
-app.use(cors({
-  origin: [
-    'https://prasannamishra001.github.io',
-    'http://localhost:3000',
-    '*'  // Be cautious in production
-  ],
-  methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+const corsOptions = {
+    origin: [
+      'https://prasannamishra001.github.io', // Your frontend domain on GitHub Pages
+      'http://localhost:3000', // For local development
+      '*', // You can keep this cautiously in production
+    ],
+    methods: ['GET', 'POST', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    preflightContinue: false,
+    optionsSuccessStatus: 204
+  };
+  
+  app.use(cors(corsOptions));
+  
 
 // Explicit route for download
 app.post('/api/download', async (req, res) => {
